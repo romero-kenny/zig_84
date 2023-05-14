@@ -1,10 +1,31 @@
+const std = @import("std");
 
-fn string_sanitizer(string_list: *[]u8) !void{
-    const ascii_checker = @import("std").ascii.isASCII();
-    var string_index: u8 = 0;
-    for (string_list) |*char| {
-        if ()
-    } 
+fn string_sanitizer(string_list: *std.ArrayList(u8)) void {
+    const ascii_checker = std.ascii;
+    var curr_ind: u8 = 0; //used for inserting items
+
+    //loop for checking for valid characters
+    for (string_list.*.items) |char| {
+        if (ascii_checker.isAlphanumeric(char)) {
+            string_list.*.items[curr_ind] = char;
+            curr_ind += 1;
+        } else {
+            switch (char) {
+                //looking for basic operators.
+                '/', '+', '-', '=', '^', '*', '.' => {
+                    string_list.*.items[curr_ind] = char;
+                    curr_ind += 1;
+                },
+                //skips unnecessary characters.
+                else => {},
+            }
+        }
+    }
+
+    //removes unneeded characters
+    while (curr_ind < string_list.*.items.len) : (curr_ind += 1) {
+        string_list.*.items[curr_ind] = ' ';
+    }
 }
 
 fn loop_logic(user_input: *const []u8) ![]u8 {
@@ -14,8 +35,8 @@ fn loop_logic(user_input: *const []u8) ![]u8 {
 
     var math_equation = ArrayList(u8).init(allocator);
     try math_equation.appendSlice(user_input.*);
-    
 
+    string_sanitizer(&math_equation);
 
     return math_equation.toOwnedSlice();
 }
